@@ -2,6 +2,20 @@ import requests
 from pprint import pprint
 from src.db.Configuration import Configuration as dbConfiguration
 from dotenv import dotenv_values
+from aiohttp import ClientSession as session
+import json
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+"""
+
+Generate product ids for WS coinbasepro ( e.g EUR-MANA not working, but MANA-EUR ok)
+
+"""
+async def get_focus_coins_id():
+    db = dbConfiguration(dotenv_values(".env"))
+    return [f"{i['coinTarget']}-{i['coinUse']}" for i in db.get_collection("focus").find()]
 
 """ 
 Using asset_name as "main" source for transaction
@@ -10,15 +24,10 @@ Using asset_name as "main" source for transaction
 async def allocate_budget(coinbase_pro_client, asset_name):
     db = dbConfiguration(dotenv_values(".env"))
 
-    print("ok")
-
-
     resp = requests.get(coinbase_pro_client.api_rest_base_url + 'accounts', auth=coinbase_pro_client)
     if resp.status_code == 200:
         target_asset = list(filter(lambda x: (x["currency"] == asset_name), resp.json()))
         focus = [i for i in db.get_collection("focus").find()]
-
-
 
         # TODO : 
         # Infos viennent du WS => product ID focus coinUse coinTarget
@@ -43,8 +52,20 @@ async def allocate_budget(coinbase_pro_client, asset_name):
 
 
 
+async def dispatch(wsPayload):
+    data = json.loads(wsPayload)
+    logging.info(f"Received RAW : {data}")
 
-
+    try:
+        if "type" in data:
+            if data["type"] == "ticker":
+                logging.debug(f"TICKER -> {data}")
+            if data["type"] == "error":
+                logging.info(f"ERROR -> {data}")
+            if data["type"] == "subscription":
+                logging.info(f"SUBSCRIPTION -> {data}")
+    except Exception as e:
+        logging.info(e)
 
 
 # {'available': '100600',
