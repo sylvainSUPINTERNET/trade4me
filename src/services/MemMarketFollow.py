@@ -31,18 +31,24 @@ class MemMarketFollow(object):
         logging.info("Distribute bid / ask ...")
 
         if cleanup_signal == True:
-            print("ok")
+            logging.info(f"Cleanup memory DF for {product_id}")
+            self.tracker_df.pop(product_id)
+            logging.info(f"Memory data for {product_id} reset with success !")
 
         if product_id in self.tracker_df:
             logging.info(f"Append to DF {product_id}")
             new_df = pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])
             self.tracker_df[product_id] = self.tracker_df[product_id].append(new_df, ignore_index=True)
-            # print(self.tracker_df[product_id])
+            
+            # Log full DF for each product_id tracked
             logging.info(self.tracker_df[product_id])
         else:
             logging.info(f"Init DF for {product_id}")
             pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])
             self.tracker_df[f"{product_id}"] = pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])
+       
+       
+       
         # else:
         #     logging.info(f"Append new dataFrame for {product_id}")
         # if self.tracker_df.get(f"{product_id}") is None:

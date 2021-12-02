@@ -45,15 +45,15 @@ async def main_loop():
             while True:
                 resp = await websocket.recv()
                 check_update_api += 1
-
+                
                 cleanup_signal = False
-                if check_update_api == 0 or check_update_api == extraConf["THICK_API_BUDGET"]:
+                if int(check_update_api == 0) or int(check_update_api) == int(extraConf["THICK_API_BUDGET"]):
                     cleanup_signal = True
 
 
                 await dispatch(resp, memMarket, cleanup_signal)
                 
-                if check_update_api == 0 or check_update_api == extraConf["THICK_API_BUDGET"]:
+                if int(check_update_api == 0) or int(check_update_api) == int(extraConf["THICK_API_BUDGET"]):
                     await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
                     check_update_api = 0
                 

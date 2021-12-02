@@ -59,7 +59,7 @@ async def dispatch(wsPayload, memMarket, cleanup_signal):
         data = json.loads(wsPayload)
         if "type" in data:
             if "product_id" in data:
-                memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"])
+                memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"], cleanup_signal)
 
             
     # try:
