@@ -10,8 +10,60 @@ import asyncio
 import websockets
 import json
 
+from src.services.MemMarketFollow import MemMarketFollow
+
 CoinbaseConfiguration = Configuration(dotenv_values(".env"))
 DbConfiguration = dbConfiguration(dotenv_values(".env"))
+extraConf = dotenv_values(".env")
+
+
+async def main_loop():
+    check_update_api = 0
+    coinsIds = await get_focus_coins_id();
+
+    memMarket = MemMarketFollow(coinToFollow=coinsIds);
+
+    # Allocate budget must be called EACH X times => not always
+    # /force doit être déplacer dans une autre application ( autre API )
+    await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
+
+    uri = "wss://ws-feed.exchange.coinbase.com" #"wss://ws-feed.prime.coinbase.com"
+    async with websockets.connect(uri, ping_interval=None, max_size=None) as websocket:
+        data = json.dumps({
+            "type": "subscribe",
+            "product_ids": coinsIds,
+            "channels": [
+                "l2update",
+                {
+                    "name": "ticker",
+                    "product_ids": coinsIds
+                }
+            ]
+        })
+        await websocket.send(message=data)
+        try:
+            while True:
+                resp = await websocket.recv()
+                check_update_api += 1
+
+                cleanup_signal = False
+                if check_update_api == 0 or check_update_api == extraConf["THICK_API_BUDGET"]:
+                    cleanup_signal = True
+
+
+                await dispatch(resp, memMarket, cleanup_signal)
+                
+                if check_update_api == 0 or check_update_api == extraConf["THICK_API_BUDGET"]:
+                    await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
+                    check_update_api = 0
+                
+        except websockets.exceptions.ConnectionClosedError:
+            print("Error caught")
+
+ 
+
+if __name__ == '__main__':
+    asyncio.run(main=main_loop())
 
 # Resource
 # => https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
@@ -46,38 +98,3 @@ DbConfiguration = dbConfiguration(dotenv_values(".env"))
 # if __name__ ==  '__main__':
 #     main()
 
-
-
-
-async def main_loop():
-    coinsIds = await get_focus_coins_id();
-
-    # Allocate budget must be called EACH X times => not always
-    # /force doit être déplacer dans une autre application ( autre API )
-    allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
-
-    uri = "wss://ws-feed.exchange.coinbase.com" #"wss://ws-feed.prime.coinbase.com"
-    async with websockets.connect(uri, ping_interval=None, max_size=None) as websocket:
-        data = json.dumps({
-            "type": "subscribe",
-            "product_ids": coinsIds,
-            "channels": [
-                "l2update",
-                {
-                    "name": "ticker",
-                    "product_ids": coinsIds
-                }
-            ]
-        })
-        await websocket.send(message=data)
-        try:
-            while True:
-                resp = await websocket.recv()
-                await dispatch(resp)
-        except websockets.exceptions.ConnectionClosedError:
-            print("Error caught")
-
- 
-
-if __name__ == '__main__':
-    asyncio.run(main=main_loop())

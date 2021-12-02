@@ -8,6 +8,8 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
+
+
 """
 
 Generate product ids for WS coinbasepro ( e.g EUR-MANA not working, but MANA-EUR ok)
@@ -22,50 +24,71 @@ Using asset_name as "main" source for transaction
 
 """
 async def allocate_budget(coinbase_pro_client, asset_name):
+    logging.debug("------ API CALL ------ ")
+
     db = dbConfiguration(dotenv_values(".env"))
 
     resp = requests.get(coinbase_pro_client.api_rest_base_url + 'accounts', auth=coinbase_pro_client)
     if resp.status_code == 200:
         target_asset = list(filter(lambda x: (x["currency"] == asset_name), resp.json()))
         focus = [i for i in db.get_collection("focus").find()]
+        for target in target_asset:
+            logging.info(f" ------------------------------------------------------------------------------")
+            logging.info(f" > Account state coinbasepro currency: {target['currency']}")
+            logging.info(f" > Account state coinbasepro balance: {target['available']}")
+            logging.info(f" >> Account state coinbasepro balance: {target['balance']}")
+            logging.info(f" >> Account state coinbasepro hold: {target['hold']}")
+            logging.info(f" >> Account state coinbasepro trading enabled: {target['trading_enabled']}")
+            logging.info(f" ------------------------------------------------------------------------------")
+            for coin in focus:
+                if coin["coinUse"] == target["currency"]:
+                    logging.info("match found in focus -> " + coin["coinUse"] + " for invest : " + coin["coinTarget"])
 
-        # TODO : 
-        # Infos viennent du WS => product ID focus coinUse coinTarget
-        # ensuite regarder buyer seller => si ça amtch avec le budget allouer si oui faire une première transaction
-        # 
+        # # Target => coinbase api 
+        # print(target_asset)
+        # # Focus => les règles
+        # print(focus)
 
-
-        # STEP 1 : Validate focus budget, related with market values
-
-        # Budget available ( in currency chosen, especially EUR)
-        # available = target_asset[0].available
-        # balance = target_asset[0].balance
-        # balance = target_asset[0].hold
-        
-
-
-        # pprint(focus)
-        # pprint(target_asset[0])
 
     else:
         print("error")
 
 
 
-async def dispatch(wsPayload):
-    data = json.loads(wsPayload)
-    logging.info(f"Received RAW : {data}")
-
-    try:
+async def dispatch(wsPayload, memMarket, cleanup_signal):
+        data = json.loads(wsPayload)
         if "type" in data:
-            if data["type"] == "ticker":
-                logging.debug(f"TICKER -> {data}")
-            if data["type"] == "error":
-                logging.info(f"ERROR -> {data}")
-            if data["type"] == "subscription":
-                logging.info(f"SUBSCRIPTION -> {data}")
-    except Exception as e:
-        logging.info(e)
+            if "product_id" in data:
+                memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"])
+
+            
+    # try:
+    #     data = json.loads(wsPayload)
+    #     if "type" in data:
+    #         if data["type"] == "ticker":
+    #             if "product_id" in data:
+    #                 #logging.debug(f"TICKER -> {data}")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+
+    #                 print(json.loads(wsPayload).keys())
+
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 print("================================")
+    #                 memMarket.add_price(data.product_id, data.best_bid, data.best_ask, cleanup_signal)
+    #         if data["type"] == "error":
+    #             logging.info(f"ERROR -> {data}")
+    #         if data["type"] == "subscription":
+    #             logging.info(f"SUBSCRIPTION -> {data}")
+    # except Exception as e:
+    #     logging.info(e)
 
 
 # {'available': '100600',
