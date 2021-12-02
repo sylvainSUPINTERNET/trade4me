@@ -43,12 +43,7 @@ async def allocate_budget(coinbase_pro_client, asset_name):
             for coin in focus:
                 if coin["coinUse"] == target["currency"]:
                     logging.info("match found in focus -> " + coin["coinUse"] + " for invest : " + coin["coinTarget"])
-
-        # # Target => coinbase api 
-        # print(target_asset)
-        # # Focus => les règles
-        # print(focus)
-
+        return resp.json()
 
     else:
         print("error")

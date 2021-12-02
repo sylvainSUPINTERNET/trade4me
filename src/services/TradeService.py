@@ -28,3 +28,7 @@ async def buy_coin():
 
 async def sell_coin():
     logging.info(f"Selling ...")
+
+
+async def analyze_plz(df, product_id):
+    logging.info(f"Analysis request for {product_id}")

@@ -2,6 +2,7 @@ import logging
 from numpy.core.fromnumeric import product
 import pandas as pd
 import numpy as np 
+from src.services.TradeService import analyze_plz
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -39,9 +40,11 @@ class MemMarketFollow(object):
             logging.info(f"Append to DF {product_id}")
             new_df = pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])
             self.tracker_df[product_id] = self.tracker_df[product_id].append(new_df, ignore_index=True)
-            
+
             # Log full DF for each product_id tracked
             logging.info(self.tracker_df[product_id])
+            
+            analyze_plz(self.tracker_df[product_id], product_id)
         else:
             logging.info(f"Init DF for {product_id}")
             pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])

@@ -10,8 +10,6 @@ import asyncio
 import websockets
 import json
 
-from src.services.TradeService import get_fee
-
 from src.services.MemMarketFollow import MemMarketFollow
 
 CoinbaseConfiguration = Configuration(dotenv_values(".env"))
@@ -20,15 +18,16 @@ extraConf = dotenv_values(".env")
 
 
 async def main_loop():
+    current_account_info = None
+
     check_update_api = 0
     coinsIds = await get_focus_coins_id();
 
     memMarket = MemMarketFollow(coinToFollow=coinsIds);
-    await get_fee()
 
     # Allocate budget must be called EACH X times => not always
     # /force doit être déplacer dans une autre application ( autre API )
-    await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
+    current_account_info = await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
 
     uri = "wss://ws-feed.exchange.coinbase.com" #"wss://ws-feed.prime.coinbase.com"
     async with websockets.connect(uri, ping_interval=None, max_size=None) as websocket:
@@ -50,6 +49,7 @@ async def main_loop():
                 check_update_api += 1
 
                 cleanup_signal = False
+
                 if int(check_update_api == 0) or int(check_update_api) == int(extraConf["THICK_API_BUDGET"]):
                     cleanup_signal = True
 
