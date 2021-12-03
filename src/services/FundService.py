@@ -43,6 +43,13 @@ async def allocate_budget(coinbase_pro_client, asset_name):
             for coin in focus:
                 if coin["coinUse"] == target["currency"]:
                     logging.info("match found in focus -> " + coin["coinUse"] + " for invest : " + coin["coinTarget"])
+
+        # TODO => return better data
+        # TODO => check what is return from API here 
+        # THEN in app they are 2 steps : 
+        # ============> INIT account / focus data ( itteration 0 )
+        # ============> each time we call API, reset this data
+        # This data will be use into dispatch => add_price => analyzis ( and in analysis we need to add the logic about budget / fee => itneressting to pay or sell ? based on df )
         return resp.json()
 
     else:
@@ -50,11 +57,11 @@ async def allocate_budget(coinbase_pro_client, asset_name):
 
 
 
-async def dispatch(wsPayload, memMarket, cleanup_signal):
+async def dispatch(wsPayload, memMarket, cleanup_signal, current_account_info):
         data = json.loads(wsPayload)
         if "type" in data:
             if "product_id" in data:
-                memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"], cleanup_signal)
+                memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"], cleanup_signal, current_account_info)
 
             
     # try:

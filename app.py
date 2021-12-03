@@ -54,10 +54,10 @@ async def main_loop():
                     cleanup_signal = True
 
 
-                await dispatch(resp, memMarket, cleanup_signal)
+                await dispatch(resp, memMarket, cleanup_signal, current_account_info)
                 
                 if int(check_update_api == 0) or int(check_update_api) == int(extraConf["THICK_API_BUDGET"]):
-                    await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
+                    current_account_info = await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
                     check_update_api = 0
                 
         except websockets.exceptions.ConnectionClosedError:
