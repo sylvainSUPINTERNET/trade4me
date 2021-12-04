@@ -30,5 +30,6 @@ async def sell_coin():
     logging.info(f"Selling ...")
 
 
-async def analyze_plz(df, product_id):
+async def analyze_plz(df, product_id, current_account_info):
     logging.info(f"Analysis request for {product_id}")
+    print(current_account_info)
