@@ -3,7 +3,7 @@ from dotenv import dotenv_values
 from src.api.CoinMiddleware import add_focus_coin
 from src.coinbase.Configuration import Configuration
 from src.db.Configuration import Configuration as dbConfiguration
-from src.services.FundService import allocate_budget, get_focus_coins_id, dispatch
+from src.services.FundService import allocate_budget, get_focus_coins_id, dispatch, get_focus_details
 from aiohttp import web
 import aiohttp_cors
 import asyncio
@@ -22,6 +22,7 @@ async def main_loop():
 
     check_update_api = 0
     coinsIds = await get_focus_coins_id();
+    info = await get_focus_details()
 
     memMarket = MemMarketFollow(coinToFollow=coinsIds);
 
@@ -54,9 +55,11 @@ async def main_loop():
                     cleanup_signal = True
 
 
-                await dispatch(resp, memMarket, cleanup_signal, current_account_info)
+                await dispatch(resp, memMarket, cleanup_signal, current_account_info, info)
                 
                 if int(check_update_api == 0) or int(check_update_api) == int(extraConf["THICK_API_BUDGET"]):
+                    # Refresh data from DB if updated
+                    info = await get_focus_details()
                     current_account_info = await allocate_budget(coinbase_pro_client=CoinbaseConfiguration, asset_name="EUR")
                     check_update_api = 0
                 

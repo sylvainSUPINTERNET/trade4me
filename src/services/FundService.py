@@ -19,7 +19,13 @@ async def get_focus_coins_id():
     db = dbConfiguration(dotenv_values(".env"))
     return [f"{i['coinTarget']}-{i['coinUse']}" for i in db.get_collection("focus").find()]
 
+
+async def get_focus_details():
+    db = dbConfiguration(dotenv_values(".env"))
+    return list(db.get_collection("focus").find())
+
 """ 
+
 Using asset_name as "main" source for transaction
 
 """
@@ -57,11 +63,11 @@ async def allocate_budget(coinbase_pro_client, asset_name):
 
 
 
-async def dispatch(wsPayload, memMarket, cleanup_signal, current_account_info):
+async def dispatch(wsPayload, memMarket, cleanup_signal, current_account_info, info_focus):
         data = json.loads(wsPayload)
         if "type" in data:
             if "product_id" in data:
-                await memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"], cleanup_signal, current_account_info)
+                await memMarket.add_price(data["product_id"], data["best_bid"], data["best_ask"], cleanup_signal, current_account_info, info_focus, wsPayload)
 
             
     # try:

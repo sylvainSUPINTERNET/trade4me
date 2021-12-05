@@ -28,12 +28,13 @@ class MemMarketFollow(object):
         e.g 'best_bid': '50509.88', 'best_ask': '50520.44', 'side': 'sell'
             'best_bid': '4057.47', 'best_ask': '4058.66', 'side': 'buy'
     """
-    async def add_price(self, product_id, best_bid, best_ask, cleanup_signal=False, current_account_info=None):
+    async def add_price(self, product_id, best_bid, best_ask, cleanup_signal=False, current_account_info=None, info_focus=None, globalWsResp={}):
         logging.info("Distribute bid / ask ...")
 
         if cleanup_signal == True:
             logging.info(f"Cleanup memory DF for {product_id}")
-            self.tracker_df.pop(product_id)
+            if product_id in self.tracker_df:
+                self.tracker_df.pop(product_id)
             logging.info(f"Memory data for {product_id} reset with success !")
 
         if product_id in self.tracker_df:
@@ -44,7 +45,7 @@ class MemMarketFollow(object):
             # Log full DF for each product_id tracked
             logging.info(self.tracker_df[product_id])
 
-            await analyze_plz(self.tracker_df[product_id], product_id, current_account_info)
+            await analyze_plz(self.tracker_df[product_id], product_id, current_account_info, info_focus, globalWsResp)
         else:
             logging.info(f"Init DF for {product_id}")
             pd.DataFrame([[best_bid, best_ask]], columns=[f"{product_id}@sell", f"{product_id}@buy"])
