@@ -1,3 +1,20 @@
+
+from dotenv import dotenv_values
+from src.coinbase.Configuration import Configuration
+import requests
+
+CoinbaseConfiguration = Configuration(dotenv_values(".env"))
+resp = requests.post(CoinbaseConfiguration.api_rest_base_url + 'orders', auth=CoinbaseConfiguration, data={"type": "limit",
+     "side": "buy",
+     "stp": "dc",
+     "stop": "loss",
+     "time_in_force": "GTC",
+     "cancel_after": "min",
+     "post_only": "false"})
+
+print(CoinbaseConfiguration.api_rest_base_url)
+print(resp.json())
+
 # Example using coinbase ( not pro ), means account maangement etc ( like OAUTH2)
 
 # import json, hmac, hashlib, time, requests

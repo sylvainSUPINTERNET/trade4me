@@ -29,9 +29,11 @@ async def buy():
     # TODO compute fee to know if it's itneressting
     logging.info(f"Buying ...")
 
+
 async def sell():
     # TODO compute fee to know if it's itneressting
     logging.info(f"Selling ...")
+    
 
 
 """
@@ -55,12 +57,12 @@ async def choose_action(df, globalWsResp, product_id, info_focus) -> str:
     
 
     buy_variation = ( (float(current_buy_price) - float(low_24h)) / float(low_24h) )  * 100
-    if buy_variation <= miniThresholdVariationToBuyInPercent:
+    if float(buy_variation) > float(miniThresholdVariationToBuyInPercent):
         logging.info(f"Buy {product_id}, variation {buy_variation}% => mini expected : {miniThresholdVariationToBuyInPercent}% -> OK")
         return "BUY"
 
     sell_variation = ( (float(current_sell_price) - float(low_24h)) / float(low_24h)) * 100
-    if sell_variation >= miniThresholdVariationToSellInPercent:
+    if float(sell_variation) >= float(miniThresholdVariationToSellInPercent):
         logging.info(f"Selling {product_id}, variation {sell_variation}% => mini expected : {miniThresholdVariationToSellInPercent}% -> OK")
         return "SELL"
         
