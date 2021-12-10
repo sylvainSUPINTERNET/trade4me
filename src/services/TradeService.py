@@ -52,6 +52,7 @@ async def choose_action(df, globalWsResp, product_id, info_focus) -> str:
     low_24h = globalWsResp["low_24h"]
     high_24h = globalWsResp["high_24h"]
 
+
     current_buy_price = df.iloc[len(df) - 1][f"{product_id}@buy"]
     current_sell_price = df.iloc[len(df) - 1][f"{product_id}@sell"]
     
